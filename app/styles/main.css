@@ -30,6 +30,7 @@ body {
     margin-bottom: 0;
     line-height: 40px;
     padding-bottom: 19px;
+    padding-left: 15px;
 }
 
 /* Custom page footer */
@@ -63,6 +64,12 @@ body {
     margin-top: 28px;
 }
 
+canvas {
+    width: 100%;
+    height: 540px;
+    background-color: grey;
+}
+
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
     .container {
@@ -81,7 +88,7 @@ body {
     .header {
         margin-bottom: 30px;
     }
-    
+
     /* Remove the bottom border on the jumbotron for visual effect */
     .jumbotron {
         border-bottom: 0;

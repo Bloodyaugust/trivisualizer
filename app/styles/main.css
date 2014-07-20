@@ -65,9 +65,12 @@ body {
 }
 
 canvas {
-    width: 100%;
+    width: 600px;
     height: 540px;
     background-color: grey;
+    margin: 60px auto;
+    display: block;
+    margin-top: 25px;
 }
 
 /* Responsive: Portrait tablets and up */

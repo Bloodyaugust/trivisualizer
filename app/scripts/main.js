@@ -1,4 +1,4 @@
-$(function () {
+(function ($) {
     var stage = new PIXI.Stage(0x000000),
         $canvas = $('canvas')[0],
         renderer = PIXI.autoDetectRenderer($canvas.width, 540, $canvas),
@@ -18,20 +18,18 @@ $(function () {
 
     stage.addChild(graphics);
 
-    setInterval(animate);
+    function Visualizer (config) {
+        var me = this;
 
-    function animate () {
-        stats.begin();
+        me.renderTarget = config.renderTarget || $('canvas')[0];
+        me.frequencyBuffer = config.frequencyBuffer || [];
 
-        graphics.clear();
-        graphics.lineStyle(10, 0xFF0000, 1);
-        for (var i = 0; i < 10000; i++) {
-            graphics.moveTo(50,40);
-            graphics.lineTo(Math.random() * 200 + 50, Math.random() * 40 + 40);
-        }
+        me.render = function () {
+            config.render ? config.render() : null;
+        };
 
-        renderer.render(stage);
-
-        stats.end();
+        me.begin = function () {
+            setInterval(me.render, 16)
+        };
     }
-});
+}(jQuery));

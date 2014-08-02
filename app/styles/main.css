@@ -9,6 +9,7 @@
 body {
     padding-top: 20px;
     padding-bottom: 20px;
+    background: grey;
 }
 
 /* Everything but the jumbotron gets side spacing for mobile first views */
@@ -65,12 +66,61 @@ body {
 }
 
 canvas {
-    width: 600px;
-    height: 540px;
+    width: 100%;
+    max-width: 1472px;
+    max-height: 736px;
     background-color: grey;
-    margin: 60px auto;
     display: block;
-    margin-top: 25px;
+    margin-bottom: 30px;
+    -webkit-filter: blur(2px) brightness(150%) contrast(150%) saturate(150%);
+}
+
+.media-control {
+    min-height: 400px;
+    background: #0E0618;
+    border: solid 5px #6C6C6C;
+    -webkit-border-radius: 5px 5px 5px 5px;
+    border-radius: 5px 5px 5px 5px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    padding: 15px;
+    color: #FF4500;
+}
+
+.media-control button.btn.btn-primary {
+    background-color: #F50;
+    border-color: #B30900;
+    border-width: 5px;
+}
+
+.media-control-header.row {
+    min-height: 50px;
+}
+.media-control-audio.row {
+    min-height: 25px;
+}
+.media-control-playlist.row {
+    min-height: 250px;
+}
+
+.media-control-playlist {
+    overflow-y: scroll;
+    max-height: 300px;
+}
+.media-control-playlist h3 {
+    margin: 0;
+}
+.media-control-playlist span:hover {
+    background-color: #5B5365;
+}
+
+.row {
+    margin: 0;
+}
+
+#stats {
+    top: 80px;
 }
 
 /* Responsive: Portrait tablets and up */

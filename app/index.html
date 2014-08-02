@@ -29,12 +29,30 @@
                     <li><a href="//synsugarstudio.com/press/">Games</a></li>
                     <li><a href="//synsugarstudio.com/press/">Press</a></li>
                 </ul>
-                <h3 class="text-muted">Trivisualizer</h3>
+                <h3>Trivisualizer</h3>
             </div>
 
             <div class="row">
-                <div class="col-lg-12 game">
+                <div class="col-lg-9 game">
                     <canvas>If you see this, please change to a different, more modern browser.</canvas>
+                </div>
+                <div class="col-lg-3 media-control">
+                    <div class="row media-control-header">
+                        <div class="col-lg-12">
+                            <button type="button" class="btn btn-primary btn-lg btn-block soundcloud">Sign In Using SoundCloud</button>
+                        </div>
+                        <div class="col-lg-6 avatar"></div>
+                        <div class="col-lg-6 username"></div>
+                    </div>
+                    <hr />
+                    <h3 class="text-center playlist-name">Favorites</h3>
+                    <div class="row media-control-playlist"></div>
+                    <hr />
+                    <div class="row media-control-audio">
+                        <div class="col-lg-12">
+                            <audio class="trivisualizer-audio" src="https://api.soundcloud.com/tracks/23458560/stream?oauth_token=1-89700-7429647-a32b576b7dd15915" controls></audio>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -49,7 +67,7 @@
         <!-- bower:js -->
         <script src="../bower_components/jquery/dist/jquery.js"></script>
         <script src="../bower_components/pixi/bin/pixi.dev.js"></script>
-        <script src="../bower_components/stats.js/build/stats.min.js"></script>
+        <!--<script src="../bower_components/stats.js/build/stats.min.js"></script>-->
         <!-- endbower -->
         <!-- endbuild -->
 
@@ -79,6 +97,7 @@
         <!-- endbuild -->
 
         <!-- build:js({app,.tmp}) scripts/main.js -->
+        <script src="scripts/sdk.js"></script>
         <script src="scripts/trivisualizer.js"></script>
         <script src="scripts/main.js"></script>
         <!-- endbuild -->

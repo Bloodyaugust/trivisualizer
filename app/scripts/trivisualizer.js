@@ -28,12 +28,13 @@
         return newArray;
     }
 
-    function audioClipEmpty(buffer) {
+    function audioClipEmpty(buffer, minimumLength) {
         var newArray = [],
+            minLength = minimumLength || parseInt(buffer.length * 0.75),
             i;
 
         for (i = 0; i < buffer.length; i++) {
-            if (buffer[i] !== 0) {
+            if (i < minLength || buffer[i] !== 0) {
                 newArray.push(buffer[i]);
             }
         }
@@ -69,22 +70,37 @@
     }
 
     function Visualizer(config) {
+        var me = this;
+
+        me.name = config.name;
+        me.fftSize = config.fftSize;
+        me.filters = config.filters;
+
+        me.render = config.render.bind(me);
+    }
+
+    function Trivisualizer(config) {
         var me = this,
+            defaults = $.fn.trivisualizer.defaults,
+            defaultVisualizer = config.defaultVisualizer || 'bars',
             stage = new PIXI.Stage(0x000000),
-            $canvas = config.canvas ? $(config.canvas)[0] : $('canvas')[0],
-            renderer = PIXI.autoDetectRenderer(1472, 736, $canvas),
+            canvas = config.canvas ? $(config.canvas)[0] : $('canvas')[0],
+            $canvas = $(canvas),
+            renderer = PIXI.autoDetectRenderer($canvas.width(), $canvas.height(), canvas),
             graphics = new PIXI.Graphics(renderer.view),
-            activeVisualizer = config.activeVisualizer || 'bars',
             audioContext = new webkitAudioContext(),
             audioSource = audioContext.createMediaElementSource($('.trivisualizer-audio')[0]),
-            audioAnalyser = audioContext.createAnalyser();
+            audioAnalyser = audioContext.createAnalyser(),
+            visualizers = [],
+            activeVisualizer, i;
 
-        audioAnalyser.fftSize = 256;
+        for (i = 0; i < defaults.visualizers.length; i++) {
+            visualizers.push(new Visualizer(defaults.visualizers[i]));
+        }
 
         audioSource.connect(audioAnalyser);
         audioAnalyser.connect(audioContext.destination);
-
-        me.renderTarget = $canvas;
+        me.renderTarget = canvas;
 
         stage.addChild(graphics);
 
@@ -92,13 +108,35 @@
             setInterval(render, 16);
         };
 
-        function render() {
-            var frequencyData = new Uint8Array(audioAnalyser.frequencyBinCount);
-            audioAnalyser.getByteFrequencyData(frequencyData);
+        me.setVisualizer = function (name) {
+            for (var i = 0; i < visualizers.length; i++) {
+                if (visualizers[i].name === name) {
+                    activeVisualizer = visualizers[i];
+                    break;
+                }
+            }
 
-            $.fn.trivisualizer.defaults.visualizers[activeVisualizer](bufferToArray(frequencyData), graphics, $canvas);
-            renderer.render(stage);
+            audioAnalyser.fftSize = activeVisualizer.fftSize;
+            $canvas.css('-webkit-filter', activeVisualizer.filters);
+        };
+
+        me.addVisualizer = function (config) {
+
+        };
+
+        function render() {
+            var frequencyData;
+
+            if (activeVisualizer) {
+                frequencyData = new Uint8Array(audioAnalyser.frequencyBinCount);
+                audioAnalyser.getByteFrequencyData(frequencyData);
+
+                activeVisualizer.render(bufferToArray(frequencyData), graphics, canvas);
+                renderer.render(stage);
+            }
         }
+
+        me.setVisualizer(defaultVisualizer);
     }
 
     $.fn.trivisualizer = function(cfg) {
@@ -106,71 +144,94 @@
             canvas: this
         }, $.fn.trivisualizer.defaults, cfg);
 
-        return new Visualizer(config);
+        return new Trivisualizer(config);
     };
 
     $.fn.trivisualizer.defaults = {
         scroll: true, // scroll thru visualizers?
-        interval: 0, // x=0 change visualizer on audio change, x>0 change visualizer on x seconds
-        visualizers: {
-            classic: function (buffer, g, canvas) {
+        interval: 30, // change visualizer every x seconds
+        visualizers: [
+            {
+                render: function (buffer, g, canvas) {
+                    var canvasWidth = canvas.width,
+                        canvasHeight = canvas.height,
+                        numBuckets = buffer.length,
+                        barRegion = (canvasWidth / numBuckets),
+                        barBaseline = canvasHeight * .7,
+                        barWidth = barRegion * .8,
+                        barOffset = barRegion / 2,
+                        barX;
 
+                    g.clear();
+                    g.lineStyle(barWidth, 0xFF6600, 1);
+                    for (var i = 0; i < buffer.length; i++) {
+                        barX = barOffset + barRegion * i;
+                        g.moveTo(barX, barBaseline);
+                        g.lineTo(barX, barBaseline - buffer[i]);
+                    }
+                    g.lineStyle(barWidth, 0xCC0000, 0.8);
+                    for (var i = 0; i < buffer.length; i++) {
+                        barX = barOffset + barRegion * i;
+                        g.moveTo(barX, barBaseline - buffer[i]);
+                        g.lineTo(barX, barBaseline - buffer[i] - (buffer[i] * .1));
+                    }
+                    g.lineStyle(barWidth, 0xFF6600, 0.3);
+                    for (i = 0; i < buffer.length; i++) {
+                        barX = barOffset + barRegion * i;
+                        g.moveTo(barX, barBaseline + 20);
+                        g.lineTo(barX, barBaseline + 20 + buffer[i] / 2);
+                    }
+                },
+                fftSize: 128,
+                filters: '',
+                name: 'bars'
             },
-            bars: function (buffer, g, canvas) {
-                var canvasWidth = canvas.width,
-                    canvasHeight = canvas.height,
-                    numBuckets = buffer.length,
-                    barRegion = (canvasWidth / numBuckets),
-                    barBaseline = canvasHeight * .7,
-                    barWidth = barRegion * .8,
-                    barOffset = barRegion / 2,
-                    barX;
+            {
+                render: function (buffer, g, canvas) {
+                    var canvasWidth = canvas.width,
+                        canvasHeight = canvas.height,
+                        buffer = audioClipEmpty(buffer),
+                        numBuckets = buffer.length,
+                        origin = {x: canvasWidth / 2, y: canvasHeight / 2},
+                        centerOffset = canvasHeight * 0.05,
+                        innerOffset = canvasHeight * 0.02,
+                        edgePadding = canvasHeight * 0.02,
+                        maxRadius = canvasHeight / 2,
+                        radianSeparation = (2 * Math.PI) / numBuckets,
+                        barWidth = 512 / numBuckets,
+                        barX, barY;
 
-                g.clear();
-                g.lineStyle(barWidth, 0xFF6600, 1);
-                for (var i = 0; i < buffer.length; i++) {
-                    barX = barOffset + barRegion * i;
-                    g.moveTo(barX, barBaseline);
-                    g.lineTo(barX, barBaseline - buffer[i]);
-                }
-                g.lineStyle(barWidth, 0xCC0000, 0.8);
-                for (var i = 0; i < buffer.length; i++) {
-                    barX = barOffset + barRegion * i;
-                    g.moveTo(barX, barBaseline - buffer[i]);
-                    g.lineTo(barX, barBaseline - buffer[i] - (buffer[i] * .1));
-                }
-                g.lineStyle(barWidth, 0xFF6600, 0.3);
-                for (i = 0; i < buffer.length; i++) {
-                    barX = barOffset + barRegion * i;
-                    g.moveTo(barX, barBaseline + 20);
-                    g.lineTo(barX, barBaseline + 20 + buffer[i] / 2);
-                }
+                    g.clear();
+                    g.lineStyle(barWidth, 0x0099FF, 1);
+                    for (var i = 0; i < buffer.length; i++) {
+                        barX = (centerOffset * Math.cos(radianSeparation * i)) + origin.x;
+                        barY = (centerOffset * Math.sin(radianSeparation * i)) + origin.y;
+                        endX = ((centerOffset + buffer[i]) * Math.cos(radianSeparation * i)) + origin.x;
+                        endY = ((centerOffset + buffer[i]) * Math.sin(radianSeparation * i)) + origin.y;
+                        g.moveTo(barX, barY);
+                        g.lineTo(endX, endY);
+                    }
+                },
+                fftSize: 2048,
+                filters: '',
+                name: 'blueDream'
             },
-            blueDream: function (buffer, g, canvas) {
-                var canvasWidth = canvas.width,
-                    canvasHeight = canvas.height,
-                    numBuckets = buffer.length,
-                    buffer = audioClipEmpty(buffer),
-                    origin = {x: canvasWidth / 2, y: canvasHeight / 2},
-                    centerOffset = canvasHeight * 0.05,
-                    innerOffset = canvasHeight * 0.02,
-                    edgePadding = canvasHeight * 0.02,
-                    maxRadius = (canvasHeight / 2) - (centerOffset + edgePadding),
-                    radianSeparation = (2 * Math.PI) / numBuckets,
-                    barWidth = 512 / numBuckets,
-                    barX, barY;
+            {
+                render: function (buffer, g, canvas) {
+                    var canvasWidth = canvas.width,
+                        canvasHeight = canvas.height,
+                        buffer = audioClipEmpty(buffer),
+                        numBuckets = buffer.length;
 
-                g.clear();
-                g.lineStyle(barWidth, 0x0099FF, 1);
-                for (var i = 0; i < buffer.length; i++) {
-                    barX = (centerOffset * Math.cos(radianSeparation * i)) + origin.x;
-                    barY = (centerOffset * Math.sin(radianSeparation * i)) + origin.y;
-                    endX = ((centerOffset + buffer[i]) * Math.cos(radianSeparation * i)) + origin.x;
-                    endY = ((centerOffset + buffer[i]) * Math.sin(radianSeparation * i)) + origin.y;
-                    g.moveTo(barX, barY);
-                    g.lineTo(endX, endY);
-                }
-            }
-        }
-    };
+                    g.clear();
+                    g.lineStyle(barWidth, 0x33FF33, 1);
+                    for (var i = 0; i < buffer.length; i++) {
+
+                    }
+                },
+                fftSize: 512,
+                filters: '',
+                name: 'wave'
+            }]
+        };
 }(jQuery));

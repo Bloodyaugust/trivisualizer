@@ -72,7 +72,6 @@ canvas {
     background-color: grey;
     display: block;
     margin-bottom: 30px;
-    -webkit-filter: blur(2px) brightness(150%) contrast(150%) saturate(150%);
 }
 
 .media-control {

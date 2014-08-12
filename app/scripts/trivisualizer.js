@@ -44,6 +44,7 @@
     function audioDetectBeat(bufferFrames, sensitivity) {
         var averages = [],
             averageChanges = [],
+            totalChange = 0,
             i, i2, bufferTotal, averageChange;
 
         for (i = 0; i < bufferFrames.length; i++) {
@@ -55,26 +56,31 @@
             averages.push(bufferTotal / bufferFrames[i].length);
         }
 
-        for (i = 0; i < averages.length - 1; i++) {
-            averageChanges.push(Math.abs(averages[i] - averages + 1));
+        for (i = 0; i < averages.length; i++) {
+            averageChanges.push(averages[i]);
         }
 
         for (i = 0; i < averageChanges.length; i++) {
-            averageChange += averageChanges[i];
+            totalChange += averageChanges[i];
         }
 
-        averageChange = averageChange / averageChanges.length;
-
-        console.clear();
-        console.log(averageChange);
+        averageChange = totalChange / averageChanges.length;
+        return averageChange;
     }
 
     function Visualizer(config) {
-        var me = this;
+        var me = this,
+        i;
 
         me.name = config.name;
         me.fftSize = config.fftSize;
         me.filters = config.filters;
+
+        for (i in config) {
+            if (config.hasOwnProperty(i)) {
+                me[i] = config[i];
+            }
+        }
 
         me.render = config.render.bind(me);
     }
@@ -88,11 +94,11 @@
             $canvas = $(canvas),
             renderer = PIXI.autoDetectRenderer($canvas.width(), $canvas.height(), canvas),
             graphics = new PIXI.Graphics(renderer.view),
-            audioContext = new webkitAudioContext(),
+            audioContext = new (AudioContext || window.webkitAudioContext)(),
             audioSource = audioContext.createMediaElementSource($('.trivisualizer-audio')[0]),
             audioAnalyser = audioContext.createAnalyser(),
             visualizers = [],
-            activeVisualizer, i;
+            activeVisualizer, activeVisualizerIndex, i;
 
         for (i = 0; i < defaults.visualizers.length; i++) {
             visualizers.push(new Visualizer(defaults.visualizers[i]));
@@ -112,6 +118,7 @@
             for (var i = 0; i < visualizers.length; i++) {
                 if (visualizers[i].name === name) {
                     activeVisualizer = visualizers[i];
+                    activeVisualizerIndex = i;
                     break;
                 }
             }
@@ -119,6 +126,14 @@
             audioAnalyser.fftSize = activeVisualizer.fftSize;
             $canvas.css('-webkit-filter', activeVisualizer.filters);
         };
+
+        me.nextVisualizer = function () {
+            if (activeVisualizerIndex + 1 < visualizers.length) {
+                me.setVisualizer(visualizers[activeVisualizerIndex + 1].name);
+            } else {
+                me.setVisualizer(visualizers[0].name);
+            }
+        }
 
         me.addVisualizer = function (config) {
 
@@ -153,7 +168,8 @@
         visualizers: [
             {
                 render: function (buffer, g, canvas) {
-                    var canvasWidth = canvas.width,
+                    var me = this,
+                        canvasWidth = canvas.width,
                         canvasHeight = canvas.height,
                         numBuckets = buffer.length,
                         barRegion = (canvasWidth / numBuckets),
@@ -162,6 +178,9 @@
                         barOffset = barRegion / 2,
                         barX;
 
+                    me.bufferFrames.unshift(buffer);
+                    me.bufferFrames.length > 16 ? me.bufferFrames.pop() : null;
+
                     g.clear();
                     g.lineStyle(barWidth, 0xFF6600, 1);
                     for (var i = 0; i < buffer.length; i++) {
@@ -169,26 +188,30 @@
                         g.moveTo(barX, barBaseline);
                         g.lineTo(barX, barBaseline - buffer[i]);
                     }
-                    g.lineStyle(barWidth, 0xCC0000, 0.8);
+                    g.lineStyle(barWidth, 0x00FF00, 0.8);
                     for (var i = 0; i < buffer.length; i++) {
                         barX = barOffset + barRegion * i;
                         g.moveTo(barX, barBaseline - buffer[i]);
                         g.lineTo(barX, barBaseline - buffer[i] - (buffer[i] * .1));
                     }
-                    g.lineStyle(barWidth, 0xFF6600, 0.3);
+                    g.lineStyle(barWidth, 0xB24700, 0.3);
                     for (i = 0; i < buffer.length; i++) {
                         barX = barOffset + barRegion * i;
                         g.moveTo(barX, barBaseline + 20);
                         g.lineTo(barX, barBaseline + 20 + buffer[i] / 2);
                     }
+
+                    $('canvas').css('-webkit-filter', 'saturate(' + (100 + (audioDetectBeat(me.bufferFrames, 1)).toFixed() * 2) + '%) ' + 'hue-rotate(' + (audioDetectBeat(me.bufferFrames, 1).toFixed() * 2) + 'deg)');
                 },
-                fftSize: 128,
+                fftSize: 256,
                 filters: '',
-                name: 'bars'
+                name: 'bars',
+                bufferFrames: []
             },
             {
                 render: function (buffer, g, canvas) {
-                    var canvasWidth = canvas.width,
+                    var me = this,
+                        canvasWidth = canvas.width,
                         canvasHeight = canvas.height,
                         buffer = audioClipEmpty(buffer),
                         numBuckets = buffer.length,
@@ -201,6 +224,9 @@
                         barWidth = 512 / numBuckets,
                         barX, barY;
 
+                    me.bufferFrames.unshift(buffer);
+                    me.bufferFrames.length > 16 ? me.bufferFrames.pop() : null;
+
                     g.clear();
                     g.lineStyle(barWidth, 0x0099FF, 1);
                     for (var i = 0; i < buffer.length; i++) {
@@ -211,11 +237,14 @@
                         g.moveTo(barX, barY);
                         g.lineTo(endX, endY);
                     }
+
+                    $('canvas').css('-webkit-filter', 'hue-rotate(' + (audioDetectBeat(me.bufferFrames, 1).toFixed() * 2) + 'deg)');
                 },
                 fftSize: 2048,
                 filters: '',
-                name: 'blueDream'
-            },
+                name: 'blueDream',
+                bufferFrames: []
+            },/**
             {
                 render: function (buffer, g, canvas) {
                     var canvasWidth = canvas.width,
@@ -232,6 +261,6 @@
                 fftSize: 512,
                 filters: '',
                 name: 'wave'
-            }]
+            }**/]
         };
 }(jQuery));

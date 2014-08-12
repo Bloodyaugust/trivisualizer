@@ -9,7 +9,7 @@
 body {
     padding-top: 20px;
     padding-bottom: 20px;
-    background: grey;
+    background: #FFF;
 }
 
 /* Everything but the jumbotron gets side spacing for mobile first views */
@@ -32,6 +32,7 @@ body {
     line-height: 40px;
     padding-bottom: 19px;
     padding-left: 15px;
+    display: inline-block;
 }
 
 /* Custom page footer */
@@ -91,6 +92,7 @@ canvas {
     background-color: #F50;
     border-color: #B30900;
     border-width: 5px;
+    font-weight: bold;
 }
 
 .media-control-header.row {
@@ -112,14 +114,64 @@ canvas {
 }
 .media-control-playlist span:hover {
     background-color: #5B5365;
+    cursor: pointer;
+}
+.media-control-playlist span.playing {
+    content: "▶";
+    margin-left: -10px;
+    margin-right: 5px;
+    line-height: px;
+    position: relative;
+    top: -2px;
 }
 
 .row {
     margin: 0;
 }
 
+.full-screen {
+    max-width: 100px;
+    max-height: 100px;
+    float: right;
+    position: relative;
+    top: -125px;
+    left: -5px;
+    display: none;
+}
+
 #stats {
     top: 80px;
+}
+
+.playlist-chooser {
+    display: inline-block;
+}
+.playlist-chooser h3 {
+    display: inline;
+    float: left;
+    margin: 0;
+}
+.playlist-chooser select {
+    float: left;
+    margin-left: 10px;
+    display: inline-block;
+    background: #428BCA;
+    color: #FFF;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+.playlist-chooser select:hover {
+    background: #000C4B;
+}
+.playlist-chooser select:focus {
+    outline: none;
+}
+
+.instructions {
+    padding-left: 20px;
+    color: #FF4500;
 }
 
 /* Responsive: Portrait tablets and up */

@@ -1,6 +1,6 @@
 (function ($) {
     var visualizer = $('canvas').trivisualizer({
-        defaultVisualizer: 'blueDream'
+        defaultVisualizer: 'davidSees'
     });
     visualizer.start();
 

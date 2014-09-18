@@ -336,14 +336,14 @@
                         numBuckets = buffer.length,
                         origin = {x: canvasWidth / 2, y: canvasHeight / 2},
                         barWidth = 2,
-                        barLength = 80,
+                        barLength = canvasWidth / 4,
                         bufferModulo, lastEndpoint, barForce, actualLength;
 
                     me.bufferFrames.unshift(buffer);
                     me.bufferFrames.length > 16 ? me.bufferFrames.pop() : null;
 
                     g.clear();
-                    g.lineStyle(barWidth, 0x0099FF, 0.35);
+                    g.lineStyle(barWidth, 0xFF0000, 0.15);
                     g.moveTo(origin.x, origin.y);
                     lastEndpoint = {x: origin.x, y: origin.y};
                     for (var i = 0; i < buffer.length; i++) {
@@ -370,9 +370,9 @@
                         }
                     }
 
-                    $('canvas').css('-webkit-filter', 'hue-rotate(' + (audioDetectBeat(me.bufferFrames, 1).toFixed() * 2) + 'deg)');
+                    $('canvas').css('-webkit-filter', 'hue-rotate(0deg)');
                 },
-                fftSize: 2048,
+                fftSize: 4096,
                 filters: '',
                 name: 'fractality',
                 bufferFrames: []
@@ -424,6 +424,83 @@
                 fftSize: 2048,
                 filters: '',
                 name: 'davidSees',
+                bufferFrames: []
+            },
+            {
+                render: function (buffer, g, canvas) {
+                    var me = this,
+                        canvasWidth = canvas.width,
+                        canvasHeight = canvas.height,
+                        buffer = audioClipEmpty(buffer),
+                        numBuckets = buffer.length,
+                        origin = new vec2(canvasWidth / 2, 10),
+                        origin2 = new vec2(canvasWidth / 2, canvasHeight - 10),
+                        barWidth = 2,
+                        barLength = canvasHeight,
+                        bufferModulo, lastEndpoint, barForce, actualLength;
+
+                    me.bufferFrames.unshift(buffer);
+                    me.bufferFrames.length > 16 ? me.bufferFrames.pop() : null;
+
+                    g.clear();
+                    g.lineStyle(barWidth, 0x0099FF, 0.35);
+                    g.moveTo(origin.x, origin.y);
+                    lastEndpoint = new vec2(origin.x, origin.y);
+                    for (var i = 0; i < buffer.length; i++) {
+                        bufferModulo = buffer[i] % 6;
+                        barForce = buffer[i] / 255;
+                        actualLength = barLength * barForce;
+
+                        if (buffer[i] !== 0 && bufferModulo < 1) {
+                            lastEndpoint = origin.getTranslatedAlongRotation(actualLength, 45);
+                            g.moveTo(origin.x, origin.y);
+                        } else if (bufferModulo >= 1 && bufferModulo < 2) {
+                            lastEndpoint = origin.getTranslatedAlongRotation(actualLength, 135);
+                            g.moveTo(origin.x, origin.y);
+                        } else if (bufferModulo >= 2 && bufferModulo < 3) {
+                            lastEndpoint = origin.getTranslatedAlongRotation(actualLength, 135);
+                        } else if (bufferModulo >= 3 && bufferModulo < 4) {
+                            lastEndpoint = origin.getTranslatedAlongRotation(actualLength, 45);
+                        } else if (bufferModulo >= 4 && bufferModulo < 5) {
+                            lastEndpoint = origin.getTranslatedAlongRotation(actualLength, 0);
+                        } else if (bufferModulo >= 5) {
+                            lastEndpoint = origin.getTranslatedAlongRotation(actualLength, 180);
+                        }
+
+                        g.lineTo(lastEndpoint.x, lastEndpoint.y);
+                    }
+
+                    g.moveTo(origin2.x, origin2.y);
+                    lastEndpoint = new vec2(origin2.x, origin2.y);
+                    for (var i = 0; i < buffer.length; i++) {
+                        bufferModulo = buffer[i] % 6;
+                        barForce = buffer[i] / 255;
+                        actualLength = barLength * barForce;
+
+                        if (buffer[i] !== 0 && bufferModulo < 1) {
+                            lastEndpoint = origin2.getTranslatedAlongRotation(actualLength, 225);
+                            g.moveTo(origin2.x, origin2.y);
+                        } else if (bufferModulo >= 1 && bufferModulo < 2) {
+                            lastEndpoint = origin2.getTranslatedAlongRotation(actualLength, 315);
+                            g.moveTo(origin2.x, origin2.y);
+                        } else if (bufferModulo >= 2 && bufferModulo < 3) {
+                            lastEndpoint = origin2.getTranslatedAlongRotation(actualLength, 315);
+                        } else if (bufferModulo >= 3 && bufferModulo < 4) {
+                            lastEndpoint = origin2.getTranslatedAlongRotation(actualLength, 225);
+                        } else if (bufferModulo >= 4 && bufferModulo < 5) {
+                            lastEndpoint = origin2.getTranslatedAlongRotation(actualLength, 0);
+                        } else if (bufferModulo >= 5) {
+                            lastEndpoint = origin2.getTranslatedAlongRotation(actualLength, 180);
+                        }
+
+                        g.lineTo(lastEndpoint.x, lastEndpoint.y);
+                    }
+
+                    $('canvas').css('-webkit-filter', 'hue-rotate(' + (audioDetectBeat(me.bufferFrames, 1).toFixed() * 4) + 'deg)');
+                },
+                fftSize: 2048,
+                filters: '',
+                name: 'pyramidite',
                 bufferFrames: []
             },/**
             {

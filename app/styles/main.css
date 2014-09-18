@@ -34,6 +34,7 @@ body {
     padding-bottom: 19px;
     padding-left: 15px;
     display: inline-block;
+    color: #FF4500;
 }
 
 /* Custom page footer */
@@ -113,7 +114,8 @@ canvas {
 .media-control-playlist h3 {
     margin: 0;
 }
-.media-control-playlist span:hover {
+.media-control-playlist span:hover,
+.media-control-playlist span.active {
     background-color: #5B5365;
     cursor: pointer;
 }

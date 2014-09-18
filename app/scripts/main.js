@@ -9,20 +9,7 @@
         redirect_uri: "http://0.0.0.0:9000/callback.html"
     });
 
-    var playlists = {
-            'trivisualizer': {
-                tracks: [
-                    {
-                        'stream_url': 'https://api.soundcloud.com/tracks/23458560/stream?oauth_token=1-89700-7429647-a32b576b7dd15915',
-                        user: {
-                            username: 'InKhornate'
-                        },
-                        title: 'Meet Them With Fury'
-                    }
-                ],
-                title: 'Trivisualizer'
-            }
-        },
+    var playlists = {},
         activePlaylist, activeSong;
 
     $('canvas').mouseenter(function () {
@@ -42,6 +29,22 @@
     });
 
     $('.game').css('max-height', $('.game').height());
+
+    $('.trivisualizer-audio').on('canplay', function () {
+        $(this).trigger('play');
+    });
+    $('.trivisualizer-audio').on('ended', function () {
+        setActiveSong(activeSong + 1);
+    });
+
+    SC.get('/playlists/51466303', function (playlist) {
+        playlists['trivisualizer'] = {
+            tracks: playlist.tracks,
+            title: 'Trivisualizer'
+        };
+        setPlaylist('trivisualizer');
+        setActiveSong(1);
+    });
 
     $('.soundcloud').click(function () {
         SC.connect(function() {
@@ -89,16 +92,23 @@
 
             newTrack.data('trackid', val.id);
             newTrack.click(function () {
-                SC.stream('/track/' + $(this).data()['trackid'], function (sound) {
-                    var audio = $('.trivisualizer-audio');
-
-                    audio.attr('src', sound.url.replace('track', 'tracks'));
-                });
+                setActiveSong(i + 1);
             });
         });
     }
 
-    $(document).ready(function () {
-        setPlaylist('trivisualizer');
-    });
+    function setActiveSong(index) {
+        var $media = $('.trivisualizer-audio'),
+            $playlist = $('.media-control-playlist'),
+            $active = $(':nth-child(' + index + ')', $playlist);
+
+        $playlist.children().removeClass('active');
+        $active.addClass('active');
+
+        SC.stream('/track/' + $active.data()['trackid'], function (sound) {
+            $media.attr('src', sound.url.replace('track', 'tracks'));
+        });
+
+        activeSong = index;
+    }
 }(jQuery));

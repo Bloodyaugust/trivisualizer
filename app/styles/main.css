@@ -70,11 +70,10 @@ body {
 
 canvas {
     width: 100%;
-    max-width: 1472px;
-    max-height: 736px;
+    min-height: 585px;
     background-color: grey;
     display: block;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
 }
 
 .media-control {
@@ -140,6 +139,8 @@ canvas {
     top: -125px;
     left: -5px;
     display: none;
+    padding: 0;
+    margin: 0;
 }
 
 #stats {

@@ -215,10 +215,15 @@
             } else {
                 me.setVisualizer(visualizers[0].name);
             }
-        }
+        };
 
         me.addVisualizer = function (config) {
 
+        };
+
+        me.resize = function (config) {
+            renderer = PIXI.autoDetectRenderer($canvas.width(), $canvas.height(), canvas);
+            graphics = new PIXI.Graphics(renderer.view);
         };
 
         function render() {
@@ -336,7 +341,7 @@
                         numBuckets = buffer.length,
                         origin = {x: canvasWidth / 2, y: canvasHeight / 2},
                         barWidth = 2,
-                        barLength = canvasWidth / 4,
+                        barLength = canvasWidth / 8,
                         bufferModulo, lastEndpoint, barForce, actualLength;
 
                     me.bufferFrames.unshift(buffer);
@@ -498,7 +503,7 @@
 
                     $('canvas').css('-webkit-filter', 'hue-rotate(' + (audioDetectBeat(me.bufferFrames, 1).toFixed() * 4) + 'deg)');
                 },
-                fftSize: 2048,
+                fftSize: 4096,
                 filters: '',
                 name: 'pyramidite',
                 bufferFrames: []

@@ -28,8 +28,6 @@
         $('canvas')[0].webkitRequestFullScreen();
     });
 
-    $('.game').css('max-height', $('.game').height());
-
     $('.trivisualizer-audio').on('canplay', function () {
         $(this).trigger('play');
     });

@@ -6,3 +6,4 @@ bower_components
 test/bower_components
 .idea
 npm-debug.log
+public

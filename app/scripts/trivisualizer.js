@@ -1,4 +1,4 @@
-(function ($) {
+(function($) {
     function componentToHex(c) {
         var hex = c.toString(16);
         return hex.length == 1 ? "0" + hex : hex;
@@ -24,39 +24,39 @@
         this.pName = 'vec2';
     }
 
-    vec2.prototype.translate = function (translateBy) {
+    vec2.prototype.translate = function(translateBy) {
         this.x += translateBy.x;
         this.y += translateBy.y;
-    }
+    };
 
-    vec2.prototype.normalize = function () {
+    vec2.prototype.normalize = function() {
         var mag = this.magnitude();
         this.x /= mag;
         this.y /= mag;
-    }
+    };
 
-    vec2.prototype.getNormal = function () {
+    vec2.prototype.getNormal = function() {
         var mag = this.magnitude();
         return new vec2(this.x / mag, this.y / mag);
-    }
+    };
 
-    vec2.prototype.scale = function (scalar) {
+    vec2.prototype.scale = function(scalar) {
         this.x *= scalar;
         this.y *= scalar;
-    }
+    };
 
-    vec2.prototype.getScaled = function (scalar) {
+    vec2.prototype.getScaled = function(scalar) {
         return new vec2(this.x * scalar, this.y * scalar);
-    }
+    };
 
-    vec2.prototype.translateAlongRotation = function (translateBy, rotation) {
+    vec2.prototype.translateAlongRotation = function(translateBy, rotation) {
         var dX = translateBy * Math.cos(rotation * Math.PI / 180);
         var dY = translateBy * Math.sin(rotation * Math.PI / 180);
         this.x += dX;
         this.y += dY;
-    }
+    };
 
-    vec2.prototype.getRotated = function (origin, angle) {
+    vec2.prototype.getRotated = function(origin, angle) {
         var cos = Math.cos(angle * 0.0174532925);
         var sin = Math.sin(angle * 0.0174532925);
 
@@ -70,35 +70,35 @@
         var finalY = rotatedY + origin.y;
 
         return new vec2(finalX, finalY);
-    }
+    };
 
-    vec2.prototype.getTranslated = function (translateBy) {
+    vec2.prototype.getTranslated = function(translateBy) {
         var x = translateBy.x + this.x;
         var y = translateBy.y + this.y;
         return new vec2(x, y);
-    }
+    };
 
-    vec2.prototype.getTranslatedAlongRotation = function (translateBy, rotation) {
+    vec2.prototype.getTranslatedAlongRotation = function(translateBy, rotation) {
         var dX = translateBy * Math.cos(rotation * Math.PI / 180);
         var dY = translateBy * Math.sin(rotation * Math.PI / 180);
         var x = dX + this.x;
         var y = dY + this.y;
         return new vec2(x, y);
-    }
+    };
 
-    vec2.prototype.distance = function (p2) {
+    vec2.prototype.distance = function(p2) {
         return Math.sqrt(((p2.x - this.x) * (p2.x - this.x)) + ((p2.y - this.y) * (p2.y - this.y)));
-    }
+    };
 
-    vec2.prototype.equals = function (p2) {
+    vec2.prototype.equals = function(p2) {
         if (this.x === p2.x && this.y === p2.y)
             return true;
         return false;
-    }
+    };
 
-    vec2.prototype.magnitude = function () {
+    vec2.prototype.magnitude = function() {
         return Math.sqrt((this.x * this.x) + (this.y * this.y));
-    }
+    };
 
     function bufferToArray(buffer) {
         var newArray = [],
@@ -152,7 +152,7 @@
 
     function Visualizer(config) {
         var me = this,
-        i;
+            i;
 
         me.name = config.name;
         me.fftSize = config.fftSize;
@@ -171,12 +171,12 @@
         var me = this,
             defaults = $.fn.trivisualizer.defaults,
             defaultVisualizer = config.defaultVisualizer || 'bars',
-            stage = new PIXI.Stage(0x000000),
+            stage = new PIXI.Container(),
             canvas = config.canvas ? $(config.canvas)[0] : $('canvas')[0],
             $canvas = $(canvas),
-            renderer = PIXI.autoDetectRenderer($canvas.width(), $canvas.height(), canvas),
+            renderer = PIXI.autoDetectRenderer($canvas.width(), $canvas.height(), {view: canvas}),
             graphics = new PIXI.Graphics(renderer.view),
-            audioContext = new (AudioContext || window.webkitAudioContext)(),
+            audioContext = new AudioContext(),
             audioSource = audioContext.createMediaElementSource($('.trivisualizer-audio')[0]),
             audioAnalyser = audioContext.createAnalyser(),
             visualizers = [],
@@ -192,11 +192,11 @@
 
         stage.addChild(graphics);
 
-        me.start = function () {
+        me.start = function() {
             setInterval(render, 16);
         };
 
-        me.setVisualizer = function (name) {
+        me.setVisualizer = function(name) {
             for (var i = 0; i < visualizers.length; i++) {
                 if (visualizers[i].name === name) {
                     activeVisualizer = visualizers[i];
@@ -209,7 +209,7 @@
             $canvas.css('-webkit-filter', activeVisualizer.filters);
         };
 
-        me.nextVisualizer = function () {
+        me.nextVisualizer = function() {
             if (activeVisualizerIndex + 1 < visualizers.length) {
                 me.setVisualizer(visualizers[activeVisualizerIndex + 1].name);
             } else {
@@ -217,11 +217,11 @@
             }
         };
 
-        me.addVisualizer = function (config) {
+        me.addVisualizer = function(config) {
 
         };
 
-        me.resize = function (config) {
+        me.resize = function(config) {
             renderer = PIXI.autoDetectRenderer($canvas.width(), $canvas.height(), canvas);
             graphics = new PIXI.Graphics(renderer.view);
         };
@@ -252,21 +252,22 @@
     $.fn.trivisualizer.defaults = {
         scroll: true, // scroll thru visualizers?
         interval: 30, // change visualizer every x seconds
-        visualizers: [
-            {
-                render: function (buffer, g, canvas) {
+        visualizers: [{
+                render: function(buffer, g, canvas) {
                     var me = this,
                         canvasWidth = canvas.width,
                         canvasHeight = canvas.height,
                         numBuckets = buffer.length,
                         barRegion = (canvasWidth / numBuckets),
-                        barBaseline = canvasHeight * .7,
-                        barWidth = barRegion * .8,
+                        barBaseline = canvasHeight * 0.7,
+                        barWidth = barRegion * 0.8,
                         barOffset = barRegion / 2,
                         barX;
 
                     me.bufferFrames.unshift(buffer);
-                    me.bufferFrames.length > 16 ? me.bufferFrames.pop() : null;
+                    if (me.bufferFrames.length > 16) {
+                        me.bufferFrames.pop();
+                    }
 
                     g.clear();
                     g.lineStyle(barWidth, 0xFF6600, 1);
@@ -276,10 +277,10 @@
                         g.lineTo(barX, barBaseline - buffer[i]);
                     }
                     g.lineStyle(barWidth, 0x00FF00, 0.8);
-                    for (var i = 0; i < buffer.length; i++) {
+                    for (i = 0; i < buffer.length; i++) {
                         barX = barOffset + barRegion * i;
                         g.moveTo(barX, barBaseline - buffer[i]);
-                        g.lineTo(barX, barBaseline - buffer[i] - (buffer[i] * .1));
+                        g.lineTo(barX, barBaseline - buffer[i] - (buffer[i] * 0.1));
                     }
                     g.lineStyle(barWidth, 0xB24700, 0.3);
                     for (i = 0; i < buffer.length; i++) {
@@ -294,15 +295,16 @@
                 filters: '',
                 name: 'bars',
                 bufferFrames: []
-            },
-            {
-                render: function (buffer, g, canvas) {
+            }, {
+                render: function(buffer, g, canvas) {
                     var me = this,
                         canvasWidth = canvas.width,
                         canvasHeight = canvas.height,
-                        buffer = audioClipEmpty(buffer),
                         numBuckets = buffer.length,
-                        origin = {x: canvasWidth / 2, y: canvasHeight / 2},
+                        origin = {
+                            x: canvasWidth / 2,
+                            y: canvasHeight / 2
+                        },
                         centerOffset = canvasHeight * 0.05,
                         innerOffset = canvasHeight * 0.02,
                         edgePadding = canvasHeight * 0.02,
@@ -311,8 +313,12 @@
                         barWidth = 512 / numBuckets,
                         barX, barY;
 
+                    buffer = audioClipEmpty(buffer);
+
                     me.bufferFrames.unshift(buffer);
-                    me.bufferFrames.length > 16 ? me.bufferFrames.pop() : null;
+                    if (me.bufferFrames.length > 16) {
+                        me.bufferFrames.pop();
+                    }
 
                     g.clear();
                     g.lineStyle(barWidth, 0x0099FF, 1);
@@ -331,47 +337,70 @@
                 filters: '',
                 name: 'blueDream',
                 bufferFrames: []
-            },
-            {
-                render: function (buffer, g, canvas) {
+            }, {
+                render: function(buffer, g, canvas) {
                     var me = this,
                         canvasWidth = canvas.width,
                         canvasHeight = canvas.height,
-                        buffer = audioClipEmpty(buffer),
                         numBuckets = buffer.length,
-                        origin = {x: canvasWidth / 2, y: canvasHeight / 2},
+                        origin = {
+                            x: canvasWidth / 2,
+                            y: canvasHeight / 2
+                        },
                         barWidth = 2,
                         barLength = canvasWidth / 8,
                         bufferModulo, lastEndpoint, barForce, actualLength;
 
+                    buffer = audioClipEmpty(buffer);
+
                     me.bufferFrames.unshift(buffer);
-                    me.bufferFrames.length > 16 ? me.bufferFrames.pop() : null;
+                    if (me.bufferFrames.length > 16) {
+                        me.bufferFrames.pop();
+                    }
 
                     g.clear();
                     g.lineStyle(barWidth, 0xFF0000, 0.15);
                     g.moveTo(origin.x, origin.y);
-                    lastEndpoint = {x: origin.x, y: origin.y};
+                    lastEndpoint = {
+                        x: origin.x,
+                        y: origin.y
+                    };
                     for (var i = 0; i < buffer.length; i++) {
                         bufferModulo = buffer[i] % 5;
                         barForce = buffer[i] / 255;
                         actualLength = barLength * barForce;
 
-                        if (buffer[i] !== 0 &&bufferModulo < 1) {
+                        if (buffer[i] !== 0 && bufferModulo < 1) {
                             g.moveTo(origin.x, origin.y);
                             g.lineTo(origin.x + (actualLength / 2), origin.y - (actualLength / 2));
-                            lastEndpoint = {x: origin.x + (actualLength / 2), y: origin.y - (actualLength / 2)};
+                            lastEndpoint = {
+                                x: origin.x + (actualLength / 2),
+                                y: origin.y - (actualLength / 2)
+                            };
                         } else if (bufferModulo >= 1 && bufferModulo < 2) {
                             g.lineTo(lastEndpoint.x - (actualLength / 2), lastEndpoint.y - (actualLength / 2));
-                            lastEndpoint = {x: lastEndpoint.x - (actualLength / 2), y: lastEndpoint.y - (actualLength / 2)};
+                            lastEndpoint = {
+                                x: lastEndpoint.x - (actualLength / 2),
+                                y: lastEndpoint.y - (actualLength / 2)
+                            };
                         } else if (bufferModulo >= 2 && bufferModulo < 3) {
                             g.lineTo(lastEndpoint.x + (actualLength / 2), lastEndpoint.y - (actualLength / 2));
-                            lastEndpoint = {x: lastEndpoint.x + (actualLength / 2), y: lastEndpoint.y - (actualLength / 2)};
+                            lastEndpoint = {
+                                x: lastEndpoint.x + (actualLength / 2),
+                                y: lastEndpoint.y - (actualLength / 2)
+                            };
                         } else if (bufferModulo >= 3 && bufferModulo < 4) {
                             g.lineTo(lastEndpoint.x - (actualLength / 2), lastEndpoint.y + (actualLength / 2));
-                            lastEndpoint = {x: lastEndpoint.x - (actualLength / 2), y: lastEndpoint.y + (actualLength / 2)};
+                            lastEndpoint = {
+                                x: lastEndpoint.x - (actualLength / 2),
+                                y: lastEndpoint.y + (actualLength / 2)
+                            };
                         } else if (bufferModulo >= 4) {
                             g.lineTo(lastEndpoint.x + (actualLength / 2), lastEndpoint.y + (actualLength / 2));
-                            lastEndpoint = {x: lastEndpoint.x + (actualLength / 2), y: lastEndpoint.y + (actualLength / 2)};
+                            lastEndpoint = {
+                                x: lastEndpoint.x + (actualLength / 2),
+                                y: lastEndpoint.y + (actualLength / 2)
+                            };
                         }
                     }
 
@@ -381,21 +410,23 @@
                 filters: '',
                 name: 'fractality',
                 bufferFrames: []
-            },
-            {
-                render: function (buffer, g, canvas) {
+            }, {
+                render: function(buffer, g, canvas) {
                     var me = this,
                         canvasWidth = canvas.width,
                         canvasHeight = canvas.height,
-                        buffer = audioClipEmpty(buffer),
                         numBuckets = buffer.length,
                         origin = new vec2(canvasWidth / 2, canvasHeight / 2),
                         barWidth = 4,
                         barLength = 300,
                         bufferModulo, lastEndpoint, barForce, actualLength;
 
+                    buffer = audioClipEmpty(buffer);
+
                     me.bufferFrames.unshift(buffer);
-                    me.bufferFrames.length > 16 ? me.bufferFrames.pop() : null;
+                    if (me.bufferFrames.length > 16) {
+                        me.bufferFrames.pop();
+                    }
 
                     g.clear();
                     g.lineStyle(barWidth, 0x0099FF, 0.35);
@@ -430,13 +461,11 @@
                 filters: '',
                 name: 'davidSees',
                 bufferFrames: []
-            },
-            {
-                render: function (buffer, g, canvas) {
+            }, {
+                render: function(buffer, g, canvas) {
                     var me = this,
                         canvasWidth = canvas.width,
                         canvasHeight = canvas.height,
-                        buffer = audioClipEmpty(buffer),
                         numBuckets = buffer.length,
                         origin = new vec2(canvasWidth / 2, 10),
                         origin2 = new vec2(canvasWidth / 2, canvasHeight - 10),
@@ -444,8 +473,12 @@
                         barLength = canvasHeight,
                         bufferModulo, lastEndpoint, barForce, actualLength;
 
+                    buffer = audioClipEmpty(buffer);
+
                     me.bufferFrames.unshift(buffer);
-                    me.bufferFrames.length > 16 ? me.bufferFrames.pop() : null;
+                    if (me.bufferFrames.length > 16) {
+                        me.bufferFrames.pop();
+                    }
 
                     g.clear();
                     g.lineStyle(barWidth, 0x0099FF, 0.35);
@@ -477,7 +510,7 @@
 
                     g.moveTo(origin2.x, origin2.y);
                     lastEndpoint = new vec2(origin2.x, origin2.y);
-                    for (var i = 0; i < buffer.length; i++) {
+                    for (i = 0; i < buffer.length; i++) {
                         bufferModulo = buffer[i] % 6;
                         barForce = buffer[i] / 255;
                         actualLength = barLength * barForce;
@@ -507,23 +540,26 @@
                 filters: '',
                 name: 'pyramidite',
                 bufferFrames: []
-            },/**
-            {
-                render: function (buffer, g, canvas) {
-                    var canvasWidth = canvas.width,
-                        canvasHeight = canvas.height,
-                        buffer = audioClipEmpty(buffer),
-                        numBuckets = buffer.length;
+            },
+            /**
+                        {
+                            render: function (buffer, g, canvas) {
+                                var canvasWidth = canvas.width,
+                                    canvasHeight = canvas.height,
+                                    numBuckets = buffer.length;
 
-                    g.clear();
-                    g.lineStyle(barWidth, 0x33FF33, 1);
-                    for (var i = 0; i < buffer.length; i++) {
+                                buffer = audioClipEmpty(buffer);
 
-                    }
-                },
-                fftSize: 512,
-                filters: '',
-                name: 'wave'
-            }**/]
-        };
+                                g.clear();
+                                g.lineStyle(barWidth, 0x33FF33, 1);
+                                for (var i = 0; i < buffer.length; i++) {
+
+                                }
+                            },
+                            fftSize: 512,
+                            filters: '',
+                            name: 'wave'
+                        }**/
+        ]
+    };
 }(jQuery));

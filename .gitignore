@@ -7,3 +7,4 @@ test/bower_components
 .idea
 npm-debug.log
 public
+app/index.html

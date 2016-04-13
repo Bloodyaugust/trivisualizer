@@ -1,4 +1,6 @@
 (function($) {
+  window.trivisualizer = {};
+
     function componentToHex(c) {
         var hex = c.toString(16);
         return hex.length == 1 ? "0" + hex : hex;
@@ -540,26 +542,82 @@
                 filters: '',
                 name: 'pyramidite',
                 bufferFrames: []
-            },
-            /**
-                        {
-                            render: function (buffer, g, canvas) {
-                                var canvasWidth = canvas.width,
-                                    canvasHeight = canvas.height,
-                                    numBuckets = buffer.length;
+            }, {
+                render: function(buffer, g, canvas) {
+                    var me = this,
+                        canvasWidth = canvas.width,
+                        canvasHeight = canvas.height,
+                        currentTime = new Date().getTime(),
+                        ghostTimeToLive = 2000,
+                        numBuckets = buffer.length,
+                        origin = new vec2(canvasWidth / 2, canvasHeight / 2),
+                        mainFFTMaxSize = me.fftSize * 0.75 * 255,
+                        mainBarLength = 300,
+                        mainBarMaxWidth = 48,
+                        maxGhostSpeed = 100,
+                        totalFFTSize = 0,
+                        bufferModulo, lastEndpoint, barForce, actualLength, memory;
 
-                                buffer = audioClipEmpty(buffer);
+                    if (window.trivisualizer.trivision) {
+                      memory = window.trivisualizer.trivision;
+                    } else {
+                      memory = window.trivisualizer.trivision = {
+                        lastTotalFFTSize: 0,
+                        lastFrame: new Date().getTime(),
+                        ghosts: []
+                      };
+                    }
 
-                                g.clear();
-                                g.lineStyle(barWidth, 0x33FF33, 1);
-                                for (var i = 0; i < buffer.length; i++) {
+                    buffer = audioClipEmpty(buffer);
 
-                                }
-                            },
-                            fftSize: 512,
-                            filters: '',
-                            name: 'wave'
-                        }**/
+                    me.bufferFrames.unshift(buffer);
+                    if (me.bufferFrames.length > 16) {
+                        me.bufferFrames.pop();
+                    }
+
+                    for (var i = 0; i < buffer.length; i++) {
+                      totalFFTSize += buffer[i];
+                    }
+                    barWidth = (totalFFTSize / mainFFTMaxSize) * mainBarMaxWidth;
+
+                    g.clear();
+                    g.lineStyle(barWidth, 0x40FF00, 1);
+                    g.moveTo(origin.x, origin.y + mainBarLength / 2);
+                    g.lineTo(origin.x + mainBarLength / 2, origin.y - mainBarLength / 2);
+                    g.lineTo(origin.x - mainBarLength / 2, origin.y - mainBarLength / 2);
+                    g.lineTo(origin.x, origin.y + mainBarLength / 2);
+
+                    for (i = memory.ghosts.length - 1; i >= 0; i--) {
+                      memory.ghosts[i].timeToLive -= currentTime - memory.lastFrame;
+
+                      if (memory.ghosts[i].timeToLive <= 0) {
+                        memory.ghosts.splice(i, 1);
+                      } else {
+                        //do ghost move and draw
+                      }
+                    }
+
+                    if (totalFFTSize > memory.lastTotalFFTSize + 500) {
+                      g.moveTo(origin.x, origin.y - mainBarLength / 2);
+                      g.lineTo(origin.x - mainBarLength / 2, origin.y + mainBarLength / 2);
+                      g.lineTo(origin.x + mainBarLength / 2, origin.y + mainBarLength / 2);
+                      g.lineTo(origin.x, origin.y - mainBarLength / 2);
+
+                      memory.ghosts.push({
+                        intensity: barWidth,
+                        speed: (totalFFTSize / mainFFTMaxSize) * mainBarMaxWidth,
+                        timeToLive: ghostTimeToLive
+                      });
+                    }
+
+                    memory.lastTotalFFTSize = totalFFTSize;
+                    memory.lastFrame = currentTime;
+                },
+                fftSize: 2048,
+                filters: '',
+                name: 'trivision',
+                bufferFrames: []
+            }
         ]
     };
 }(jQuery));
